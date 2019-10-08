@@ -1,15 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import requests
-import pickle
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from fake_useragent import UserAgent
 from typing import List
+from urllib.parse import urljoin
+import pickle
+import random
+import requests
+import time
 
-list_type_collect = 'collect'
-list_type_wish = 'wish'
-start_url = 'https://movie.douban.com/people/{people_id}/{list_type}?start=0&sort=title&rating=all&filter=all&mode=list'
+LIST_TYPE_COLLECT = 'collect'
+LIST_TYPE_WISH = 'wish'
+START_URL = 'https://movie.douban.com/people/{people_id}/{list_type}?start=0&sort=title&rating=all&filter=all&mode=list'
+
+# set up sensitivy personal information
+people_id = ''
+proxy_list = [
+]
+from sensitive_info import *
+# set up sensitivy personal information
+
+# web crawler disguise
+fua = UserAgent()
+def refresh_identity():
+    global proxies, headers, cookies
+    proxies = random.choice(proxy_list)
+    headers = {
+        'Referer': 'https://movie.douban.com/',
+        'User-Agent': fua.chrome,
+    }
+    cookies = requests.get(
+        headers['Referer'],
+        headers = headers, proxies = proxies
+    ).cookies
+    time.sleep(random.random() * 5 + 3)
+
+proxies = {
+}
+headers = {
+}
+cookies = requests.cookies.RequestsCookieJar()
+
+refresh_identity()
+# web crawler disguise
 
 class Douban_Movie_Entry(object):
     def __init__(self, *, title = '', link = '', release_date = '', imdb_link = ''):
@@ -36,7 +70,11 @@ class Douban_Movie_Entry(object):
         ])
 
 def fill_list(list_: list, list_type: str, people_id: str):
-    page = requests.get(start_url.format(people_id = people_id, list_type = list_type))
+    page = requests.get(
+        START_URL.format(people_id = people_id, list_type = list_type),
+        headers = headers, cookies = cookies, proxies = proxies,
+    )
+    time.sleep(random.random() * 5 + 3)
     page_soup = BeautifulSoup(page.text, 'html.parser')
     while (True):
         # extract the item list in the page
@@ -52,14 +90,22 @@ def fill_list(list_: list, list_type: str, people_id: str):
         # check if there is 'next page'
         next_page_link = page_soup.find('span', class_ = 'next').find('a')
         if (next_page_link is not None):
-            page = requests.get(urljoin(page.url, next_page_link['href']))
+            page = requests.get(
+                urljoin(page.url, next_page_link['href']),
+                headers = headers, cookies = cookies, proxies = proxies,
+            )
+            time.sleep(random.random() * 5 + 3)
             page_soup = BeautifulSoup(page.text, 'html.parser')
         else:
             break
 
 def inspect_list(list_: List[Douban_Movie_Entry]):
     for entry in list_:
-        page = requests.get(entry.link)
+        page = requests.get(
+            entry.link,
+            headers = headers, cookies = cookies, proxies = proxies,
+        )
+        time.sleep(random.random() * 5 + 3)
         page_soup = BeautifulSoup(page.text, 'html.parser')
         entry_info = page_soup.find('div', id = 'info')
         # TODO: if there exist multiple dates, should first sort them
@@ -69,14 +115,13 @@ def inspect_list(list_: List[Douban_Movie_Entry]):
         print('ENTRY DETAIL ADDED: {}'.format(repr(entry)))
 
 def main():
-    people_id = input('your personal douban id: ')
-
     list_wish = []
-    fill_list(list_wish, list_type_wish, people_id)
+    fill_list(list_wish, LIST_TYPE_WISH, people_id)
+    refresh_identity()
     inspect_list(list_wish)
 
     # list_collect = []
-    # fill_list(list_collect, list_type_collect, people_id)
+    # fill_list(list_collect, LIST_TYPE_COLLECT, people_id)
     # inspect_list(list_collect)
 
     pickle.dumps(list_wish, open('list_wish.pickle', 'wb'))
