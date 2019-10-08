@@ -119,18 +119,17 @@ def inspect_list(list_: List[Douban_Movie_Entry]):
         print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
 
 def main():
-    # list_collect = []
-    # fill_list(list_collect, LIST_TYPE_COLLECT, people_id)
-    # refresh_identity()
-    # inspect_list(list_collect)
-
     list_wish = []
+    list_wish_file = open('list_wish.pickle', 'wb')
+
     fill_list(list_wish, LIST_TYPE_WISH, people_id)
+    pickle.dump(list_wish, list_wish_file)
+
     refresh_identity()
     inspect_list(list_wish)
+    pickle.dump(list_wish, list_wish_file)
 
-    # pickle.dumps(list_collect, open('list_collect.pickle', 'wb'))
-    pickle.dumps(list_wish, open('list_wish.pickle', 'wb'))
+    list_wish_file.close()
 
 if (__name__ == '__main__'):
     main()
