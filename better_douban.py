@@ -76,6 +76,7 @@ def fill_list(list_: list, list_type: str, people_id: str):
     )
     time.sleep(random.random() * 5 + 3)
     page_soup = BeautifulSoup(page.text, 'html.parser')
+    counter = 0
     while (True):
         # extract the item list in the page
         for item in page_soup.find_all('li', class_ = 'item'):
@@ -86,7 +87,8 @@ def fill_list(list_: list, list_type: str, people_id: str):
                 link = entry_property['href'],
             )
             list_.append(entry)
-            print('ENTRY ADDED: {}'.format(repr(entry)))
+            counter += 1
+            print('#{:_>4} ENTRY ADDED: {}'.format(counter, repr(entry)))
         # check if there is 'next page'
         next_page_link = page_soup.find('span', class_ = 'next').find('a')
         if (next_page_link is not None):
@@ -100,6 +102,7 @@ def fill_list(list_: list, list_type: str, people_id: str):
             break
 
 def inspect_list(list_: List[Douban_Movie_Entry]):
+    counter = 0
     for entry in list_:
         page = requests.get(
             entry.link,
@@ -112,20 +115,22 @@ def inspect_list(list_: List[Douban_Movie_Entry]):
         entry.release_date = ' / '.join([
             date.string.strip() for date in entry_info.find_all('span', property = 'v:initialReleaseDate')
         ])
-        print('ENTRY DETAIL ADDED: {}'.format(repr(entry)))
+        counter += 1
+        print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
 
 def main():
+    # list_collect = []
+    # fill_list(list_collect, LIST_TYPE_COLLECT, people_id)
+    # refresh_identity()
+    # inspect_list(list_collect)
+
     list_wish = []
     fill_list(list_wish, LIST_TYPE_WISH, people_id)
     refresh_identity()
     inspect_list(list_wish)
 
-    # list_collect = []
-    # fill_list(list_collect, LIST_TYPE_COLLECT, people_id)
-    # inspect_list(list_collect)
-
-    pickle.dumps(list_wish, open('list_wish.pickle', 'wb'))
     # pickle.dumps(list_collect, open('list_collect.pickle', 'wb'))
+    pickle.dumps(list_wish, open('list_wish.pickle', 'wb'))
 
 if (__name__ == '__main__'):
     main()

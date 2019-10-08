@@ -7,3 +7,7 @@ __pycache__/
 # vim undo file
 *.un~
 
+# user files
+list_collect.pickle
+list_wish.pickle
+
