@@ -126,7 +126,7 @@ class Douban_Movie_Entry(object):
         else:
             release_date = 'EMPTY'
 
-        return '<\'{class_}\'; title: {title}, release_date: {release_date}>'.format(
+        return '<{class_}; title: {title}, release_date: {release_date}>'.format(
             class_ = self.__class__.__name__,
             title = title, release_date = release_date,
         )
