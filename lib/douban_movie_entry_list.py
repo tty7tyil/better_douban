@@ -9,9 +9,9 @@ from requests.models import Response
 from urllib.parse import urljoin
 
 class Douban_Movie_Entry_List(object):
-    def __init__(self, start_url, requester: Crawler_Requests = Crawler_Requests()):
+    def __init__(self, start_url, requester: Crawler_Requests = None):
         self.start_url = start_url
-        self.requester = requester
+        self.requester = requester if (requester is not None) else Crawler_Requests()
         self.list: List[Douban_Movie_Entry] = []
 
     def fill_list(self):
@@ -49,7 +49,7 @@ class Douban_Movie_Entry_List(object):
                 page.raise_for_status()
             except HTTPError as e:
                 print(''.join([
-                    '\n##{:_>4}## FETCH ENTRY PAGE FAILED: \'{}\'\n'.format(counter, e),
+                    '\n##{:_>4}## FETCH ENTRY PAGE FAILED: \'{}\''.format(counter, e),
                     str(entry),
                     '########\n',
                 ]))
