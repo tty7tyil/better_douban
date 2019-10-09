@@ -12,7 +12,7 @@ class Douban_Movie_Entry_List(object):
     def __init__(self, start_url, requester: Crawler_Requests = Crawler_Requests()):
         self.start_url = start_url
         self.requester = requester
-        self.list = []
+        self.list: List[Douban_Movie_Entry] = []
 
     def fill_list(self):
         page = self.requester.get(self.start_url)
