@@ -78,8 +78,12 @@ class Douban_Movie_Entry_List(object):
                 entry.release_date = date_list
                 print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
     
-    def sort_list(self):
-        pass
+    def sort_list(self, method = 'time', reverse = False):
+        if (method == 'time'):
+            key = lambda entry: entry.release_date
+        elif (method == 'title'):
+            key = lambda entry: entry.title
+        self.list.sort(key = key, reverse = reverse)
 
 class Douban_Movie_Entry(object):
     def __init__(
