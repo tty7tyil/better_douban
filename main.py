@@ -19,8 +19,15 @@ from sensitive_info import *
 
 def main():
     list_wish = douban_movie_entry_list.Douban_Movie_Entry_List(
-        start_url = START_URL.format(people_id = people_id, list_type = LIST_TYPE_WISH),
-        requester = Crawler_Requests(proxy_list = proxy_list),
+        start_url = START_URL.format(
+            people_id = people_id,
+            list_type = LIST_TYPE_WISH
+        ),
+        requester = Crawler_Requests(
+            proxy_list = proxy_list,
+            sleep_time = (0, 2, ),
+            counter_limit = 100,
+        ),
     )
     list_wish_file = open('list_wish.pickle', 'wb')
 

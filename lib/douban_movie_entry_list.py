@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import List, Tuple
 from bs4 import BeautifulSoup
 from lib.crawler_requests import Crawler_Requests
 from requests.exceptions import HTTPError
@@ -57,18 +58,22 @@ class Douban_Movie_Entry_List(object):
 
             entry_info = entry.get_page_soup().find('div', id = 'info')
             try:
-                # TODO: if there exist multiple dates, should first sort them
-                entry.release_date = ' / '.join([
-                    date.string.strip() for date in entry_info.find_all('span', property = 'v:initialReleaseDate')
-                ])
+                date_info_list = entry_info.find_all('span', property = 'v:initialReleaseDate')
             except AttributeError as e:
                 print(''.join([
-                    '\n##{:_>4}## PARSE ENTRY INFO FAILED: \'{}\'\n'.format(counter, e),
+                    '\n##{:_>4}## PARSE ENTRY INFO FAILED: \'{}\''.format(counter, e),
                     str(entry),
                     '########\n',
                 ]))
                 continue
             else:
+                date_list = []
+                for date in date_info_list:
+                    date_list.append(
+                        tuple(date.string.strip().replace(')', '').split('('))
+                    )
+                date_list.sort()
+                entry.release_date = date_list
                 print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
     
     def sort_list(self):
@@ -77,17 +82,22 @@ class Douban_Movie_Entry_List(object):
 class Douban_Movie_Entry(object):
     def __init__(
         self, *,
-        title = '', link = '',
-        release_date = '', imdb_link = '',
+        title = '', link = '', imdb_link = '',
+        release_date: List[Tuple[str, str]] = [],
         page: Response = None,
         page_soup: BeautifulSoup = None,
     ):
         self.title = title
         self.link = link
-        self.release_date = release_date
         self.imdb_link = imdb_link
+        self.release_date = release_date
         self.__page = page
         self.__page_soup = page_soup
+
+    def format_release_date(self) -> str:
+        return ' / '.join(
+            [' '.join(date) for date in self.release_date]
+        )
 
     def set_page(self, page: Response):
         self.__page = page
@@ -101,7 +111,7 @@ class Douban_Movie_Entry(object):
 
     def __repr__(self):
         title = '\'{}\''.format(self.title) if (self.title != '') else 'EMPTY'
-        release_date = '\'{}\''.format(self.release_date) if (self.release_date != '') else 'EMPTY'
+        release_date = '\'{}\''.format(self.format_release_date()) if (len(self.release_date) != 0) else 'EMPTY'
         return '<\'{class_}\'; title: {title}, release_date: {release_date}>'.format(
             class_ = self.__class__.__name__,
             title = title, release_date = release_date,
