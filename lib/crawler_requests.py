@@ -15,7 +15,7 @@ class Crawler_Requests(object):
         headers = {},
         cookies = requests.cookies.RequestsCookieJar(),
         proxy_list = [],
-        sleep_time = (1, 5, ),
+        sleep_time = (1, 3, ),
         counter_limit = 100,
     ):
         self._proxies = proxies
