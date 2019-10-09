@@ -23,8 +23,10 @@ class Douban_Movie_Entry_List(object):
             for item in page_soup.find_all('li', class_ = 'item'):
                 # extract item info from list elements
                 entry_property = item.find('a')
+                title = entry_property.string.strip().split(' / ')
+                title.reverse()
                 entry = Douban_Movie_Entry(
-                    title = entry_property.string.strip(),
+                    title = title,
                     link = entry_property['href'],
                 )
                 self.list.append(entry)
@@ -82,7 +84,8 @@ class Douban_Movie_Entry_List(object):
 class Douban_Movie_Entry(object):
     def __init__(
         self, *,
-        title = '', link = '', imdb_link = '',
+        title: List[str] = [],
+        link = '', imdb_link = '',
         release_date: List[Tuple[str, str]] = [],
         page: Response = None,
         page_soup: BeautifulSoup = None,
@@ -93,6 +96,9 @@ class Douban_Movie_Entry(object):
         self.release_date = release_date
         self.__page = page
         self.__page_soup = page_soup
+
+    def format_title(self) -> str:
+        return ' / '.join(self.title)
 
     def format_release_date(self) -> str:
         return ' / '.join(
@@ -110,8 +116,16 @@ class Douban_Movie_Entry(object):
         return self.__page_soup
 
     def __repr__(self):
-        title = '\'{}\''.format(self.title) if (self.title != '') else 'EMPTY'
-        release_date = '\'{}\''.format(self.format_release_date()) if (len(self.release_date) != 0) else 'EMPTY'
+        if (len(self.title) != 0):
+            title = '\'{}\''.format(self.format_title())
+        else:
+            title = 'EMPTY'
+
+        if (len(self.release_date) != 0):
+            release_date = '\'{}\''.format(self.format_release_date())
+        else:
+            release_date = 'EMPTY'
+
         return '<\'{class_}\'; title: {title}, release_date: {release_date}>'.format(
             class_ = self.__class__.__name__,
             title = title, release_date = release_date,
