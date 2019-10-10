@@ -41,23 +41,24 @@ class Douban_Movie_Entry_List(object):
             else:
                 break
 
-    def inspect_list(self):
+    def inspect_list(self, *, fetch_page_again = False):
         counter = 0
         for entry in self.list:
             counter += 1
-            page = self.requester.get(entry.link)
-            try:
-                page.raise_for_status()
-            except HTTPError as e:
-                print(''.join([
-                    '\n##{:_>4}## FETCH ENTRY PAGE FAILED: \'{}\''.format(counter, e),
-                    str(entry),
-                    '########\n',
-                ]))
-                continue
-            else:
-                entry.set_page(page)
-                entry.set_page_soup(BeautifulSoup(entry.get_page().text, 'html.parser'))
+            if ((entry.get_page() is None) or fetch_page_again):
+                page = self.requester.get(entry.link)
+                try:
+                    page.raise_for_status()
+                except HTTPError as e:
+                    print(''.join([
+                        '\n##{:_>4}## FETCH ENTRY PAGE FAILED: \'{}\''.format(counter, e),
+                        str(entry),
+                        '########\n',
+                    ]))
+                    continue
+                else:
+                    entry.set_page(page)
+                    entry.set_page_soup(BeautifulSoup(entry.get_page().text, 'html.parser'))
 
             entry_info = entry.get_page_soup().find('div', id = 'info')
             try:
@@ -90,7 +91,7 @@ class Douban_Movie_Entry(object):
         self, *,
         title_list: List[str] = [],
         link: str = None, imdb_link: str = None,
-        release_date_list: List[Release_Date] = [],
+        release_date_list: List[Douban_Movie_Entry.Release_Date] = [],
         page: Response = None,
         page_soup: BeautifulSoup = None,
     ):
@@ -182,7 +183,7 @@ class Douban_Movie_Entry(object):
         # compare numerical value form y to m to d, **greater is at back**.
         # if one of the two is missing some part and the rest has same value, like
         # `1111-22-33` and `1111-22`, **the one with missing parts is at back**.
-        def __lt__(self, other: Release_Date):
+        def __lt__(self, other: Douban_Movie_Entry.Release_Date):
             ss, os = self._split_date(), other._split_date()
             less_than_by_length = True
             for i in range(min(len(ss), len(os))):
@@ -194,7 +195,7 @@ class Douban_Movie_Entry(object):
                 less_than_by_length = False
             return less_than_by_length
 
-        def __eq__(self, other: Release_Date):
+        def __eq__(self, other: Douban_Movie_Entry.Release_Date):
             ss, os = self._split_date(), other._split_date()
             if (len(ss) == len(os)):
                 for i in range(len(ss)):
