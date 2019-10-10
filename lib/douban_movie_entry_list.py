@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Tuple
 from bs4 import BeautifulSoup
 from lib.crawler_requests import Crawler_Requests
 from requests.exceptions import HTTPError
 from requests.models import Response
+from typing import List, Tuple
 from urllib.parse import urljoin
 
 class Douban_Movie_Entry_List(object):
