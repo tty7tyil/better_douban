@@ -25,7 +25,7 @@ def main():
         ),
         requester = Crawler_Requests(
             proxy_list = proxy_list,
-            sleep_time = (0, 1, ),
+            sleep_time_range = (0, 1, ),
         ),
     )
     list_wish_file = open('list_wish.pickle', 'wb')

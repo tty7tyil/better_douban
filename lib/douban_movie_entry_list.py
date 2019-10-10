@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations  # guess i will just delete this line after python 4.0 ;)
 from bs4 import BeautifulSoup
 from lib.crawler_requests import Crawler_Requests
 from requests.exceptions import HTTPError
@@ -9,7 +10,7 @@ from typing import List, Tuple
 from urllib.parse import urljoin
 
 class Douban_Movie_Entry_List(object):
-    def __init__(self, start_url, requester: Crawler_Requests = None):
+    def __init__(self, start_url: str, requester: Crawler_Requests = None):
         self.start_url = start_url
         self.requester = requester if (requester is not None) else Crawler_Requests()
         self.list: List[Douban_Movie_Entry] = []
@@ -23,10 +24,10 @@ class Douban_Movie_Entry_List(object):
             for item in page_soup.find_all('li', class_ = 'item'):
                 # extract item info from list elements
                 entry_property = item.find('a')
-                title = entry_property.string.strip().split(' / ')
-                title.reverse()
+                title_list = entry_property.string.strip().split(' / ')
+                title_list.reverse()
                 entry = Douban_Movie_Entry(
-                    title = title,
+                    title_list = title_list,
                     link = entry_property['href'],
                 )
                 self.list.append(entry)
@@ -71,43 +72,40 @@ class Douban_Movie_Entry_List(object):
             else:
                 date_list = []
                 for date in date_info_list:
-                    date_list.append(
-                        tuple(date.string.strip().replace(')', '').split('('))
-                    )
+                    date_list.append(Douban_Movie_Entry.Release_Date(
+                        *date.string.strip().replace(')', '').split('(')
+                    ))
                 date_list.sort()
-                entry.release_date = date_list
+                entry.release_date_list = date_list
                 print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
-    
+
     def sort_list(self, method = 'time', reverse = False):
-        if (method == 'time'):
-            key = lambda entry: entry.release_date
-        elif (method == 'title'):
-            key = lambda entry: entry.title
-        self.list.sort(key = key, reverse = reverse)
+        kwargs = {}
+        if (method == 'title'):
+            kwargs['key'] = lambda entry: entry.title_list
+        self.list.sort(**kwargs, reverse = reverse)
 
 class Douban_Movie_Entry(object):
     def __init__(
         self, *,
-        title: List[str] = [],
-        link = '', imdb_link = '',
-        release_date: List[Tuple[str, str]] = [],
+        title_list: List[str] = [],
+        link: str = None, imdb_link: str = None,
+        release_date_list: List[Release_Date] = [],
         page: Response = None,
         page_soup: BeautifulSoup = None,
     ):
-        self.title = title
+        self.title_list = title_list
         self.link = link
         self.imdb_link = imdb_link
-        self.release_date = release_date
+        self.release_date_list = release_date_list
         self.__page = page
         self.__page_soup = page_soup
 
     def format_title(self) -> str:
-        return ' / '.join(self.title)
+        return ' / '.join(self.title_list)
 
-    def format_release_date(self) -> str:
-        return ' / '.join(
-            [' '.join(date) for date in self.release_date]
-        )
+    def format_release_date_list(self) -> str:
+        return ' / '.join([str(e) for e in self.release_date_list])
 
     def set_page(self, page: Response):
         self.__page = page
@@ -119,14 +117,28 @@ class Douban_Movie_Entry(object):
     def get_page_soup(self) -> BeautifulSoup:
         return self.__page_soup
 
+    def __lt__(self, other: Douban_Movie_Entry):
+        if (len(self.release_date_list) != 0):
+            if (len(other.release_date_list) == 0):
+                return True
+            elif (self.release_date_list[0] < other.release_date_list[0]):
+                return True
+        else:
+            return False
+
+    def __eq__(self, other: Douban_Movie_Entry):
+        if (self.link == other.link):
+            return True
+        return False
+
     def __repr__(self):
-        if (len(self.title) != 0):
+        if (len(self.title_list) != 0):
             title = '\'{}\''.format(self.format_title())
         else:
             title = 'EMPTY'
 
-        if (len(self.release_date) != 0):
-            release_date = '\'{}\''.format(self.format_release_date())
+        if (len(self.release_date_list) != 0):
+            release_date = '\'{}\''.format(self.format_release_date_list())
         else:
             release_date = 'EMPTY'
 
@@ -145,3 +157,48 @@ class Douban_Movie_Entry(object):
             '-<IMDb Link  : {}>\n'.format(imdb_link),
             '-<Page Status: {}>\n'.format(page_status_code),
         ])
+
+    class Release_Date(object):
+        def __init__(self, date: str, territory: str = None):
+            self.date = date
+            self.territory = territory
+        
+        def __repr__(self):
+            return '<rd(\'{}\', \'{}\')>'.format(self.date, self.territory)
+
+        def __str__(self):
+            if (self.territory is not None):
+                return '{} ({})'.format(self.date, self.territory)
+            else:
+                return self.date
+
+        def _split_date(self) -> Tuple[int, int, int]:
+            return tuple([int(e) for e in self.date.split('-')])
+
+        # date_string format: `yyyy-mm-dd`,
+        # day or month and day can be missing.
+        #
+        # comparison rule (ascending):
+        # compare numerical value form y to m to d, **greater is at back**.
+        # if one of the two is missing some part and the rest has same value, like
+        # `1111-22-33` and `1111-22`, **the one with missing parts is at back**.
+        def __lt__(self, other: Release_Date):
+            ss, os = self._split_date(), other._split_date()
+            less_than_by_length = True
+            for i in range(min(len(ss), len(os))):
+                if (ss[i] < os[i]):
+                    return True
+                elif (ss[i] > os[i]):
+                    return False
+            if (len(ss) <= len(os)):
+                less_than_by_length = False
+            return less_than_by_length
+
+        def __eq__(self, other: Release_Date):
+            ss, os = self._split_date(), other._split_date()
+            if (len(ss) == len(os)):
+                for i in range(len(ss)):
+                    if (ss[i] != os[i]):
+                        return False
+                return True
+            return False
