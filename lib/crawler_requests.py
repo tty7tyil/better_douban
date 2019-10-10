@@ -15,6 +15,7 @@ class Crawler_Requests(object):
         headers: Dict[str, str] = {},
         cookies = requests.cookies.RequestsCookieJar(),
         proxy_list: List[Dict[str, str]] = [],
+        allow_request_without_proxy = False,
         sleep_time_range: Tuple[int, int] = (1, 3),
         counter_limit_range: Tuple[int, int] = (50, 100),
     ):
@@ -30,6 +31,7 @@ class Crawler_Requests(object):
         self._headers = headers
         self._cookies = cookies
         self.__proxy_list = proxy_list
+        self.__allow_request_without_proxy = allow_request_without_proxy
         self.__sleep_time_range = sleep_time_range
         self.__counter_limit_range = counter_limit_range
         self.__counter_limit = 0
@@ -73,7 +75,10 @@ class Crawler_Requests(object):
         if ('proxies' in kwargs):
             self._proxies = kwargs['proxies']
         elif (len(self.__proxy_list) != 0):
-            self._proxies = random.choice(self.__proxy_list)
+            if (self.__allow_request_without_proxy):
+                self._proxies = random.choice(self.__proxy_list + [{}])
+            else:
+                self._proxies = random.choice(self.__proxy_list)
 
         if (('headers' in kwargs) and ('Referer' in kwargs['headers'])):
             self.set_headers_referer(kwargs['headers']['Referer'])
@@ -96,6 +101,11 @@ class Crawler_Requests(object):
         self.__proxy_list = proxy_list
     def get_proxy_list(self) -> List[Dict[str, str]]:
         return self.__proxy_list
+
+    def set_allow_request_without_proxy(self, allow_request_without_proxy):
+        self.__allow_request_without_proxy = allow_request_without_proxy
+    def get_allow_request_without_proxy(self):
+        return self.__allow_request_without_proxy
 
     def set_headers_referer(self, referer: str):
         self._headers['Referer'] = referer
