@@ -11,21 +11,30 @@ import time
 class Crawler_Requests(object):
     def __init__(
         self, *,
-        proxies = {},
-        headers = {},
+        proxies: Dict[str, str] = {},
+        headers: Dict[str, str] = {},
         cookies = requests.cookies.RequestsCookieJar(),
-        proxy_list = [],
-        sleep_time = (1, 3, ),
-        counter_limit = 100,
+        proxy_list: List[Dict[str, str]] = [],
+        sleep_time_range: Tuple[int, int] = (1, 3),
+        counter_limit_range: Tuple[int, int] = (50, 100),
     ):
+        # because `refresh_identity()` will be called in the end of
+        # constructor, the following things should be noted
+        #
+        # - `proxies` and `proxy_list` should not both been provided
+        # - `headers` and `cookies` will be refreshed before actually been used
+        #
+        # these values should be passed into `refresh_identity()`
+        # function if desired
         self._proxies = proxies
         self._headers = headers
         self._cookies = cookies
         self.__proxy_list = proxy_list
-        self.__sleep_time = sleep_time
-        self.__fua = UserAgent()
+        self.__sleep_time_range = sleep_time_range
+        self.__counter_limit_range = counter_limit_range
+        self.__counter_limit = 0
         self.__counter = 0
-        self.__counter_limit = counter_limit
+        self.__fua = UserAgent()
         self.refresh_identity()
 
     def get(self, *args, **kwargs):
@@ -45,10 +54,7 @@ class Crawler_Requests(object):
 
         page = requests.get(*args, **args_dict, **kwargs)
         self.__counter += 1
-        time.sleep(
-            random.random() * (self.__sleep_time[1] - self.__sleep_time[0])
-            + self.__sleep_time[0]
-        )
+        time.sleep(random.uniform(*self.__sleep_time_range))
 
         if (
             ('Referer' not in self._headers)
@@ -83,6 +89,7 @@ class Crawler_Requests(object):
         else:
             self._cookies.clear()
 
+        self.__counter_limit = random.randint(*self.__counter_limit_range)
         self.__counter = 0
 
     def set_proxy_list(self, proxy_list: List[Dict[str, str]]):
@@ -95,12 +102,12 @@ class Crawler_Requests(object):
     def set_headers_user_agent(self, user_agent: str):
         self._headers['User-Agent'] = user_agent
 
-    def set_sleep_time(self, sleep_time: Tuple[int, int]):
-        self.__sleep_time = sleep_time
-    def get_sleep_time(self) -> Tuple[int, int]:
-        return self.__sleep_time
+    def set_sleep_time_range(self, sleep_time_range: Tuple[int, int]):
+        self.__sleep_time_range = sleep_time_range
+    def get_sleep_time_range(self) -> Tuple[int, int]:
+        return self.__sleep_time_range
 
-    def set_counter_limit(self, counter_limit: int):
-        self.__counter_limit = counter_limit
-    def get_counter_limit(self) -> int:
-        return self.__counter_limit
+    def set_counter_limit_range(self, counter_limit_range: Tuple[int, int]):
+        self.__counter_limit_range = counter_limit_range
+    def get_counter_limit_range(self) -> Tuple[int, int]:
+        return self.__counter_limit_range

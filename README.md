@@ -13,6 +13,7 @@
 
 - requests
 - beautifulsoup4
+- fake-useragent
 
 内置一个简单的 requests 封装，提供了基础的爬虫伪装能力。
 
