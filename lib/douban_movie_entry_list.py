@@ -115,7 +115,7 @@ class Douban_Movie_Entry_List(object):
     def __str__(self):
         self_info = ''.join([
             '\n<{}>\n'.format(repr(self)),
-            '-<Start URL    : {}>\n'.format(self.start_url),
+            '-<Start URL: {}>\n'.format(self.start_url),
         ])
         entry_list_info = ''
         progress_counter = 0
