@@ -121,14 +121,14 @@ class Douban_Movie_Entry_List(object):
         progress_counter = 0
         for e in self:
             progress_counter += 1
-            entry_info = repr(e).split('; ')[1].split(', ')
+            entry_info = repr(e).split('; ')[1].split(', r')
             entry_list_info = ''.join([
-                entry_info,
+                entry_list_info,
                 '--<#_{:_>{}} {}\n'.format(
                     progress_counter, len(str(len(self))),
                     entry_info[0]
                 ),
-                '-- {}\n'.format(entry_info[1]),
+                '-- r{}\n'.format(entry_info[1]),
             ])
 
         return ''.join([self_info, entry_list_info])
