@@ -149,10 +149,10 @@ class Douban_Movie_Entry(object):
         self.__page = page
         self.__page_soup = page_soup
 
-    def format_title(self) -> str:
+    def get_title(self) -> str:
         return ' / '.join(self.title_list)
 
-    def format_release_date_list(self) -> str:
+    def get_release_date(self) -> str:
         return ' / '.join([str(e) for e in self.release_date_list])
 
     def set_page(self, page: Response):
@@ -181,12 +181,12 @@ class Douban_Movie_Entry(object):
 
     def __repr__(self):
         if (len(self.title_list) != 0):
-            title = '\'{}\''.format(self.format_title())
+            title = '\'{}\''.format(self.get_title())
         else:
             title = 'EMPTY'
 
         if (len(self.release_date_list) != 0):
-            release_date = '\'{}\''.format(self.format_release_date_list())
+            release_date = '\'{}\''.format(self.get_release_date())
         else:
             release_date = 'EMPTY'
 
