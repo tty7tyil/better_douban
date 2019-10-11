@@ -29,25 +29,9 @@ def main():
             sleep_time_range = (1, 2),
         ),
     )
-    list_wish_file = open('list_wish.pickle', 'wb')
 
     list_wish.fill_list()
-    pickle.dump(list_wish.list, list_wish_file)
-    print(''.join([
-        '\n################\n',
-        'WISH LIST FILLED\n',
-        '################\n'
-    ]))
-
     list_wish.inspect_list()
-    pickle.dump(list_wish.list, list_wish_file)
-    print(''.join([
-        '\n###################\n',
-        'WISH LIST INSPECTED\n',
-        '###################\n'
-    ]))
-
-    list_wish_file.close()
 
 if (__name__ == '__main__'):
     main()

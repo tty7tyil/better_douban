@@ -13,12 +13,12 @@ class Douban_Movie_Entry_List(object):
     def __init__(self, start_url: str, requester: Crawler_Requests = None):
         self.start_url = start_url
         self.requester = requester if (requester is not None) else Crawler_Requests()
-        self.list: List[Douban_Movie_Entry] = []
+        self.entry_list: List[Douban_Movie_Entry] = []
 
     def fill_list(self):
         page = self.requester.get(self.start_url)
         page_soup = BeautifulSoup(page.text, 'html.parser')
-        counter = 0
+        progress_counter = 0
         while (True):
             # extract the item list in the page
             for item in page_soup.find_all('li', class_ = 'item'):
@@ -30,9 +30,9 @@ class Douban_Movie_Entry_List(object):
                     title_list = title_list,
                     link = entry_property['href'],
                 )
-                self.list.append(entry)
-                counter += 1
-                print('#{:_>4} ENTRY ADDED: {}'.format(counter, repr(entry)))
+                self.entry_list.append(entry)
+                progress_counter += 1
+                print('#_{} ENTRY ADDED: {}'.format(progress_counter, repr(entry)))
             # check if there is 'next page'
             next_page_link = page_soup.find('span', class_ = 'next').find('a')
             if (next_page_link is not None):
@@ -42,16 +42,17 @@ class Douban_Movie_Entry_List(object):
                 break
 
     def inspect_list(self, *, fetch_page_again = False):
-        counter = 0
-        for entry in self.list:
-            counter += 1
+        progress_counter = 0
+        for entry in self:
+            progress_counter += 1
             if ((entry.get_page() is None) or fetch_page_again):
                 page = self.requester.get(entry.link)
                 try:
                     page.raise_for_status()
                 except HTTPError as e:
                     print(''.join([
-                        '\n##{:_>4}## FETCH ENTRY PAGE FAILED: \'{}\''.format(counter, e),
+                        '\n##_{:_>{}}##'.format(progress_counter, len(str(len(self)))),
+                        'FETCH ENTRY PAGE FAILED: \'{}\''.format(e),
                         str(entry),
                         '########\n',
                     ]))
@@ -65,7 +66,8 @@ class Douban_Movie_Entry_List(object):
                 date_info_list = entry_info.find_all('span', property = 'v:initialReleaseDate')
             except AttributeError as e:
                 print(''.join([
-                    '\n##{:_>4}## PARSE ENTRY INFO FAILED: \'{}\''.format(counter, e),
+                    '\n##_{:_>{}}}##'.format(progress_counter, len(str(len(self)))),
+                    'PARSE ENTRY INFO FAILED: \'{}\''.format(e),
                     str(entry),
                     '########\n',
                 ]))
@@ -78,13 +80,58 @@ class Douban_Movie_Entry_List(object):
                     ))
                 date_list.sort()
                 entry.release_date_list = date_list
-                print('#{:_>4} ENTRY DETAIL ADDED: {}'.format(counter, repr(entry)))
+                print('#_{:_>{}} ENTRY DETAIL ADDED: {}'.format(
+                    progress_counter, len(str(len(self))),
+                    repr(entry))
+                )
 
     def sort_list(self, method = 'time', reverse = False):
         kwargs = {}
         if (method == 'title'):
             kwargs['key'] = lambda entry: entry.title_list
-        self.list.sort(**kwargs, reverse = reverse)
+        self.entry_list.sort(**kwargs, reverse = reverse)
+
+    def __iter__(self):
+        return self.entry_list.__iter__()
+
+    def __len__(self):
+        return len(self.entry_list)
+
+    def __getitem__(self, key: int):
+        return self.entry_list[key]
+
+    def __repr__(self):
+        fetched_pages = 0
+        for e in self:
+            if (e.get_page() is not None):
+                fetched_pages += 1
+
+        return ''.join([
+            '<{class_}; '.format(class_ = self.__class__.__name__),
+            'contain {entry_count} entry(s), '.format(entry_count = len(self)),
+            'fetched {fetched_pages} page(s)>'.format(fetched_pages = fetched_pages),
+        ])
+
+    def __str__(self):
+        self_info = ''.join([
+            '\n<{}>\n'.format(repr(self)),
+            '-<Start URL    : {}>\n'.format(self.start_url),
+        ])
+        entry_list_info = ''
+        progress_counter = 0
+        for e in self:
+            progress_counter += 1
+            entry_info = repr(e).split('; ')[1].split(', ')
+            entry_list_info = ''.join([
+                entry_info,
+                '--<#_{:_>{}} {}\n'.format(
+                    progress_counter, len(str(len(self))),
+                    entry_info[0]
+                ),
+                '-- {}\n'.format(entry_info[1]),
+            ])
+
+        return ''.join([self_info, entry_list_info])
 
 class Douban_Movie_Entry(object):
     def __init__(
