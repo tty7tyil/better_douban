@@ -66,7 +66,7 @@ class Douban_Movie_Entry_List(object):
                 date_info_list = entry_info.find_all('span', property = 'v:initialReleaseDate')
             except AttributeError as e:
                 print(''.join([
-                    '\n##_{:_>{}}}##'.format(progress_counter, len(str(len(self)))),
+                    '\n##_{:_>{}}##'.format(progress_counter, len(str(len(self)))),
                     'PARSE ENTRY INFO FAILED: \'{}\''.format(e),
                     str(entry),
                     '########\n',
