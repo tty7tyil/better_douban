@@ -3,6 +3,7 @@
 
 from lib.crawler_requests import Crawler_Requests
 from lib.douban_movie_entry_list import Douban_Movie_Entry_List
+from lib.mixed_unicode_align import mixed_unicode_align
 import os
 import pickle
 
@@ -32,6 +33,14 @@ def main():
 
     list_wish.fill_list()
     list_wish.inspect_list()
+
+    for e in list_wish:
+        print('{}{}'.format(
+            mixed_unicode_align('.', '<', 80,
+            e.get_title(), resolve_as_wide = ['…']
+        ),
+            e.get_release_date()
+        ))
 
 if (__name__ == '__main__'):
     main()
