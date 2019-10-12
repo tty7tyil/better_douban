@@ -45,6 +45,8 @@ class Douban_Movie_Entry_List(object):
         progress_counter = 0
         for entry in self:
             progress_counter += 1
+
+            # fetch entry web page
             if ((entry.get_page() is None) or fetch_page_again):
                 page = self.requester.get(entry.link)
                 try:
@@ -61,6 +63,19 @@ class Douban_Movie_Entry_List(object):
                     entry.set_page(page)
                     entry.set_page_soup(BeautifulSoup(entry.get_page().text, 'html.parser'))
 
+            # check the necessity of extracting title from entry page
+            if (len(entry._title_list) == 2):
+                original_title_info = (
+                    entry
+                        .get_page_soup()
+                        .find('span', property = 'v:itemreviewed')
+                )
+                original_title = (
+                    original_title_info.string.strip()[len(entry._title_list[1]) + 1:]
+                )
+                entry._title_list[0] = original_title
+
+            # extract entry info from entry page
             entry_info = entry.get_page_soup().find('div', id = 'info')
             try:
                 date_info_list = entry_info.find_all('span', property = 'v:initialReleaseDate')
@@ -74,12 +89,12 @@ class Douban_Movie_Entry_List(object):
                 continue
             else:
                 date_list = []
-                for date in date_info_list:
+                for date_info in date_info_list:
                     date_list.append(Douban_Movie_Entry.Release_Date(
-                        *date.string.strip().replace(')', '').split('(')
+                        *date_info.string.strip().replace(')', '').split('(')
                     ))
                 date_list.sort()
-                entry.release_date_list = date_list
+                entry._release_date_list = date_list
                 print('#_{:_>{}} ENTRY DETAIL ADDED: {}'.format(
                     progress_counter, len(str(len(self))),
                     repr(entry))
@@ -88,7 +103,7 @@ class Douban_Movie_Entry_List(object):
     def sort_list(self, method = 'time', reverse = False):
         kwargs = {}
         if (method == 'title'):
-            kwargs['key'] = lambda entry: entry.title_list
+            kwargs['key'] = lambda entry: entry._title_list
         self.entry_list.sort(**kwargs, reverse = reverse)
 
     def __iter__(self):
@@ -142,18 +157,18 @@ class Douban_Movie_Entry(object):
         page: Response = None,
         page_soup: BeautifulSoup = None,
     ):
-        self.title_list = title_list
+        self._title_list = title_list
         self.link = link
         self.imdb_link = imdb_link
-        self.release_date_list = release_date_list
+        self._release_date_list = release_date_list
         self.__page = page
         self.__page_soup = page_soup
 
     def get_title(self) -> str:
-        return ' / '.join(self.title_list)
+        return ' / '.join(self._title_list)
 
     def get_release_date(self) -> str:
-        return ' / '.join([str(e) for e in self.release_date_list])
+        return ' / '.join([str(e) for e in self._release_date_list])
 
     def set_page(self, page: Response):
         self.__page = page
@@ -166,10 +181,10 @@ class Douban_Movie_Entry(object):
         return self.__page_soup
 
     def __lt__(self, other: Douban_Movie_Entry):
-        if (len(self.release_date_list) != 0):
-            if (len(other.release_date_list) == 0):
+        if (len(self._release_date_list) != 0):
+            if (len(other._release_date_list) == 0):
                 return True
-            elif (self.release_date_list[0] < other.release_date_list[0]):
+            elif (self._release_date_list[0] < other._release_date_list[0]):
                 return True
         else:
             return False
@@ -180,12 +195,12 @@ class Douban_Movie_Entry(object):
         return False
 
     def __repr__(self):
-        if (len(self.title_list) != 0):
+        if (len(self._title_list) != 0):
             title = '\'{}\''.format(self.get_title())
         else:
             title = 'EMPTY'
 
-        if (len(self.release_date_list) != 0):
+        if (len(self._release_date_list) != 0):
             release_date = '\'{}\''.format(self.get_release_date())
         else:
             release_date = 'EMPTY'

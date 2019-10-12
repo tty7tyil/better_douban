@@ -10,14 +10,14 @@ import unicodedata as ucd
 def mixed_unicode_align(
     fill: str, align: str, width: int,
     string: str, *,
-    ambiguous_as_wide: bool = False,
+    ambiguous_always_wide: bool = False,
     resolve_as_wide: List[str] = [],
 ) -> str:
     # make sure `fill` and `align` is character
     ord(fill)
     ord(align)
 
-    if (ambiguous_as_wide):
+    if (ambiguous_always_wide):
         wide = 'FWA'
     else:
         wide = 'FW'
