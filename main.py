@@ -37,7 +37,7 @@ def main():
     for e in list_wish:
         print('{}{}'.format(
             mixed_unicode_align('.', '<', 80,
-            e.get_title(), resolve_as_wide = ['…']
+            e.get_title(), resolve_as_wide = ['\u2026']
         ),
             e.get_release_date()
         ))
