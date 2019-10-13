@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from fake_useragent import UserAgent
 from typing import List, Dict, Tuple
 from urllib import parse
+import fake_useragent as fua
 import random
 import requests
 import time
@@ -36,7 +36,7 @@ class Crawler_Requests(object):
         self.__counter_limit_range = counter_limit_range
         self.__counter_limit = 0
         self.__counter = 0
-        self.__fua = UserAgent()
+        self.__fua = fua.UserAgent()
         self.refresh_identity()
 
     def get(self, *args, **kwargs) -> requests.models.Response:

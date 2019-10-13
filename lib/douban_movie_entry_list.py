@@ -2,23 +2,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations  # guess i will just delete this line after python 4.0 ;)
-from bs4 import BeautifulSoup
-from lib.crawler_requests import Crawler_Requests
-from requests.exceptions import HTTPError
-from requests.models import Response
+from lib import crawler_requests as cr
 from typing import Iterator, List, Tuple
-from urllib.parse import urljoin
+from urllib import parse
+import bs4
+import requests.exceptions as r_exceptions
+import requests.models as r_models
 
 class Douban_Movie_Entry_List(object):
-    def __init__(self, start_url: str, requester: Crawler_Requests = None):
+    def __init__(self, start_url: str, requester: cr.Crawler_Requests = None):
         self.start_url = start_url
-        self.requester = requester if (requester is not None) else Crawler_Requests()
+        self.requester = requester if (requester is not None) else cr.Crawler_Requests()
         self._entry_list: List[Douban_Movie_Entry] = []
 
     def fill_list(self) -> None:
         page = self.requester.get(self.start_url)
-        page_soup = BeautifulSoup(page.text, 'html.parser')
         progress_counter = 0
+        page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
         while (True):
             # extract the item list in the page
             for item in page_soup.find_all('li', class_ = 'item'):
@@ -36,8 +36,8 @@ class Douban_Movie_Entry_List(object):
             # check if there is 'next page'
             next_page_link = page_soup.find('span', class_ = 'next').find('a')
             if (next_page_link is not None):
-                page = self.requester.get(urljoin(page.url, next_page_link['href']))
-                page_soup = BeautifulSoup(page.text, 'html.parser')
+                page = self.requester.get(parse.urljoin(page.url, next_page_link['href']))
+                page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
             else:
                 break
 
@@ -51,7 +51,7 @@ class Douban_Movie_Entry_List(object):
                 page = self.requester.get(entry.link)
                 try:
                     page.raise_for_status()
-                except HTTPError as e:
+                except r_exceptions.HTTPError as e:
                     print(''.join([
                         '\n##_{:_>{}}##'.format(progress_counter, len(str(len(self)))),
                         'FETCH ENTRY PAGE FAILED: \'{}\''.format(e),
@@ -61,7 +61,7 @@ class Douban_Movie_Entry_List(object):
                     continue
                 else:
                     entry.set_page(page)
-                    entry.set_page_soup(BeautifulSoup(entry.get_page().text, 'html.parser'))
+                    entry.set_page_soup(bs4.BeautifulSoup(entry.get_page().text, 'html.parser'))
 
             # check the necessity of extracting title from entry page
             if (len(entry._title_list) == 2):
@@ -154,8 +154,8 @@ class Douban_Movie_Entry(object):
         title_list: List[str] = [],
         link: str = None, imdb_link: str = None,
         release_date_list: List[Douban_Movie_Entry.Release_Date] = [],
-        page: Response = None,
-        page_soup: BeautifulSoup = None,
+        page: r_models.Response = None,
+        page_soup: bs4.BeautifulSoup = None,
     ):
         self._title_list = title_list
         self.link = link
@@ -170,14 +170,14 @@ class Douban_Movie_Entry(object):
     def get_release_date(self) -> str:
         return ' / '.join([str(e) for e in self._release_date_list])
 
-    def set_page(self, page: Response) -> None:
+    def set_page(self, page: r_models.Response) -> None:
         self.__page = page
-    def get_page(self) -> Response:
+    def get_page(self) -> r_models.Response:
         return self.__page
 
-    def set_page_soup(self, page_soup: BeautifulSoup) -> None:
+    def set_page_soup(self, page_soup: bs4.BeautifulSoup) -> None:
         self.__page_soup = page_soup
-    def get_page_soup(self) -> BeautifulSoup:
+    def get_page_soup(self) -> bs4.BeautifulSoup:
         return self.__page_soup
 
     def __lt__(self, other: Douban_Movie_Entry) -> bool:
