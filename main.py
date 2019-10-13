@@ -4,7 +4,6 @@
 from lib import crawler_requests as cr
 from lib import douban_movie_entry_list as dmel
 from lib import mixed_unicode_align as mua
-import os
 
 LIST_TYPE_COLLECT = 'collect'
 LIST_TYPE_WISH = 'wish'

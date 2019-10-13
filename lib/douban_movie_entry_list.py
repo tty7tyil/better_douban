@@ -20,6 +20,7 @@ class Douban_Movie_Entry_List(object):
         page = self.requester.get(self.start_url)
         page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
         page_count += 1
+        entry_list = []
         while (True):
             # extract the item list in the page
             page_item_count = 0
@@ -32,7 +33,7 @@ class Douban_Movie_Entry_List(object):
                     title_list = title_list,
                     link = entry_property['href'],
                 )
-                self._entry_list.append(entry)
+                entry_list.append(entry)
                 page_item_count += 1
             # check if there is 'next page'
             print('LIST PAGE #_{} FETCHED, CONTAINS {} ITEM{plural}'.format(
@@ -47,6 +48,16 @@ class Douban_Movie_Entry_List(object):
                 page_count += 1
             else:
                 break
+
+        for entry in self._entry_list[:]:
+            if entry in entry_list:
+                entry_list.remove(entry)
+            else:
+                self._entry_list.remove(entry)
+                print('ENTRY REMOVED: {}'.format(repr(entry)))
+        for entry in entry_list:
+            print('ENTRY ADDED: {}'.format(repr(entry)))
+        self._entry_list.extend(entry_list)
 
     def inspect_list(self, *, fetch_page_again = False) -> None:
         progress_counter = 0
