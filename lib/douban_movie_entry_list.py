@@ -16,11 +16,13 @@ class Douban_Movie_Entry_List(object):
         self._entry_list: List[Douban_Movie_Entry] = []
 
     def fill_list(self) -> None:
+        page_count = 0
         page = self.requester.get(self.start_url)
-        progress_counter = 0
         page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
+        page_count += 1
         while (True):
             # extract the item list in the page
+            page_item_count = 0
             for item in page_soup.find_all('li', class_ = 'item'):
                 # extract item info from list elements
                 entry_property = item.find('a')
@@ -31,13 +33,18 @@ class Douban_Movie_Entry_List(object):
                     link = entry_property['href'],
                 )
                 self._entry_list.append(entry)
-                progress_counter += 1
-                print('#_{} ENTRY ADDED: {}'.format(progress_counter, repr(entry)))
+                page_item_count += 1
             # check if there is 'next page'
+            print('LIST PAGE #_{} FETCHED, CONTAINS {} ITEM{plural}'.format(
+                page_count,
+                page_item_count,
+                plural = 'S' if (1 < page_item_count) else '',
+            ))
             next_page_link = page_soup.find('span', class_ = 'next').find('a')
             if (next_page_link is not None):
                 page = self.requester.get(parse.urljoin(page.url, next_page_link['href']))
                 page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
+                page_count += 1
             else:
                 break
 
@@ -123,8 +130,14 @@ class Douban_Movie_Entry_List(object):
 
         return ''.join([
             '<{class_}; '.format(class_ = self.__class__.__name__),
-            'contain {entry_count} entry(s), '.format(entry_count = len(self)),
-            'fetched {fetched_pages} page(s)>'.format(fetched_pages = fetched_pages),
+            'contains {entry_count} entr{plural}, '.format(
+                entry_count = len(self),
+                plural = 'ies' if (1 < len(self)) else 'y',
+            ),
+            'fetched {fetched_pages} page{plural}>'.format(
+                fetched_pages = fetched_pages,
+                plural = 's' if (1 < fetched_pages) else '',
+            ),
         ])
 
     def __str__(self) -> str:
