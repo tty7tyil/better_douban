@@ -39,7 +39,7 @@ class Crawler_Requests(object):
         self.__fua = UserAgent()
         self.refresh_identity()
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> requests.models.Response:
         if (
             (self.__counter_limit != 0)
             and (self.__counter_limit <= self.__counter)
@@ -71,7 +71,7 @@ class Crawler_Requests(object):
 
         return page
 
-    def refresh_identity(self, **kwargs):
+    def refresh_identity(self, **kwargs) -> None:
         if ('proxies' in kwargs):
             self._proxies = kwargs['proxies']
         elif (len(self.__proxy_list) != 0):
@@ -97,27 +97,27 @@ class Crawler_Requests(object):
         self.__counter_limit = random.randint(*self.__counter_limit_range)
         self.__counter = 0
 
-    def set_proxy_list(self, proxy_list: List[Dict[str, str]]):
+    def set_proxy_list(self, proxy_list: List[Dict[str, str]]) -> None:
         self.__proxy_list = proxy_list
     def get_proxy_list(self) -> List[Dict[str, str]]:
         return self.__proxy_list
 
-    def set_allow_request_without_proxy(self, allow_request_without_proxy):
+    def set_allow_request_without_proxy(self, allow_request_without_proxy: bool) -> None:
         self.__allow_request_without_proxy = allow_request_without_proxy
-    def get_allow_request_without_proxy(self):
+    def get_allow_request_without_proxy(self) -> bool:
         return self.__allow_request_without_proxy
 
-    def set_headers_referer(self, referer: str):
+    def set_headers_referer(self, referer: str) -> None:
         self._headers['Referer'] = referer
-    def set_headers_user_agent(self, user_agent: str):
+    def set_headers_user_agent(self, user_agent: str) -> None:
         self._headers['User-Agent'] = user_agent
 
-    def set_sleep_time_range(self, sleep_time_range: Tuple[int, int]):
+    def set_sleep_time_range(self, sleep_time_range: Tuple[int, int]) -> None:
         self.__sleep_time_range = sleep_time_range
     def get_sleep_time_range(self) -> Tuple[int, int]:
         return self.__sleep_time_range
 
-    def set_counter_limit_range(self, counter_limit_range: Tuple[int, int]):
+    def set_counter_limit_range(self, counter_limit_range: Tuple[int, int]) -> None:
         self.__counter_limit_range = counter_limit_range
     def get_counter_limit_range(self) -> Tuple[int, int]:
         return self.__counter_limit_range
