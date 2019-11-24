@@ -36,12 +36,12 @@ class Douban_Movie_Entry_List(object):
                 )
                 entry_list.append(entry)
                 page_item_count += 1
-            # check if there is 'next page'
             print('LIST PAGE #_{} FETCHED, CONTAINS {} ITEM{plural}'.format(
                 page_count,
                 page_item_count,
                 plural='S' if (1 < page_item_count) else '',
             ))
+            # check if there is 'next page'
             next_page_link = page_soup.find('span', class_='next').find('a')
             if (next_page_link is not None):
                 page = self.requester.get(parse.urljoin(
@@ -125,6 +125,7 @@ class Douban_Movie_Entry_List(object):
                         *date_info.string.strip().replace(')', '').split('(')
                     ))
                 date_list.sort()
+                date_list.sort(key=lambda release_date: release_date.territory)
                 entry._release_date_list = date_list
                 print('#_{:_>{}} ENTRY DETAIL ADDED: {}'.format(
                     progress_counter, len(str(len(self))),

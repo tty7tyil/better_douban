@@ -87,15 +87,69 @@ class Douban_Movie_Entry(object):
         ])
 
     class Release_Date(object):
-        def __init__(self, date: str, territory: str = None):
+        class Territory(object):
+            def __init__(self, territory: str):
+                self.territory = territory
+
+            def __repr__(self) -> str:
+                return self.territory
+
+            def classify(self) -> int:
+                # WEB
+                # Blu-ray
+                # 首映
+                # 点映
+                # 电影节
+                if ('中国' in self.territory):
+                    return 0
+                elif (
+                    ('WEB' in self.territory)
+                    or ('网络' in self.territory)
+                ):
+                    return 1
+                elif ('Blu-ray' in self.territory):
+                    return 2
+                elif ('首映' in self.territory):
+                    return 4
+                elif ('点映' in self.territory):
+                    return 5
+                elif ('电影节' in self.territory):
+                    return 6
+                else:
+                    return 3
+
+            def __lt__(
+                self,
+                other: Douban_Movie_Entry.Release_Date.Territory
+            ) -> bool:
+                return self.classify() < other.classify()
+
+            def __eq__(
+                self,
+                other: Douban_Movie_Entry.Release_Date.Territory
+            ) -> bool:
+                return self.classify() == other.classify()
+
+        def __init__(
+            self,
+            date: str,
+            territory: Douban_Movie_Entry.Release_Date.Territory = None
+        ):
             self.date = date
-            self.territory = territory
+            if (territory is not None):
+                self.territory = (
+                    Douban_Movie_Entry
+                    .Release_Date
+                    .Territory(territory)
+                )
+            else:
+                self.territory = ''
 
         def __repr__(self) -> str:
             return '<rd(\'{}\', \'{}\')>'.format(self.date, self.territory)
 
         def __str__(self) -> str:
-            if (self.territory is not None):
+            if (str(self.territory) != ''):
                 return '{} ({})'.format(self.date, self.territory)
             else:
                 return self.date
