@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from __future__ import annotations  # guess i will just delete this line after python 4.0 ;)
 from lib import crawler_requests as cr
 from lib import douban_movie_entry as dme
 from typing import Iterator, List
@@ -9,10 +8,12 @@ from urllib import parse
 import bs4
 import requests.exceptions as r_exceptions
 
+
 class Douban_Movie_Entry_List(object):
     def __init__(self, start_url: str, requester: cr.Crawler_Requests = None):
         self.start_url = start_url
-        self.requester = requester if (requester is not None) else cr.Crawler_Requests()
+        self.requester = requester if (
+            requester is not None) else cr.Crawler_Requests()
         self._entry_list: List[dme.Douban_Movie_Entry] = []
 
     def fill_list(self) -> None:
@@ -24,14 +25,14 @@ class Douban_Movie_Entry_List(object):
         while (True):
             # extract the item list in the page
             page_item_count = 0
-            for item in page_soup.find_all('li', class_ = 'item'):
+            for item in page_soup.find_all('li', class_='item'):
                 # extract item info from list elements
                 entry_property = item.find('a')
                 title_list = entry_property.string.strip().split(' / ')
                 title_list.reverse()
                 entry = dme.Douban_Movie_Entry(
-                    title_list = title_list,
-                    link = entry_property['href'],
+                    title_list=title_list,
+                    link=entry_property['href'],
                 )
                 entry_list.append(entry)
                 page_item_count += 1
@@ -39,11 +40,13 @@ class Douban_Movie_Entry_List(object):
             print('LIST PAGE #_{} FETCHED, CONTAINS {} ITEM{plural}'.format(
                 page_count,
                 page_item_count,
-                plural = 'S' if (1 < page_item_count) else '',
+                plural='S' if (1 < page_item_count) else '',
             ))
-            next_page_link = page_soup.find('span', class_ = 'next').find('a')
+            next_page_link = page_soup.find('span', class_='next').find('a')
             if (next_page_link is not None):
-                page = self.requester.get(parse.urljoin(page.url, next_page_link['href']))
+                page = self.requester.get(parse.urljoin(
+                    page.url, next_page_link['href']
+                ))
                 page_soup = bs4.BeautifulSoup(page.text, 'html.parser')
                 page_count += 1
             else:
@@ -59,7 +62,7 @@ class Douban_Movie_Entry_List(object):
             print('ENTRY ADDED: {}'.format(repr(entry)))
         self._entry_list.extend(entry_list)
 
-    def inspect_list(self, *, fetch_page_again = False) -> None:
+    def inspect_list(self, *, fetch_page_again=False) -> None:
         progress_counter = 0
         for entry in self:
             progress_counter += 1
@@ -71,7 +74,9 @@ class Douban_Movie_Entry_List(object):
                     page.raise_for_status()
                 except r_exceptions.HTTPError as e:
                     print(''.join([
-                        '\n##_{:_>{}}##'.format(progress_counter, len(str(len(self)))),
+                        '\n##_{:_>{}}##'.format(
+                            progress_counter, len(str(len(self)))
+                        ),
                         'FETCH ENTRY PAGE FAILED: \'{}\''.format(e),
                         str(entry),
                         '########\n',
@@ -79,27 +84,35 @@ class Douban_Movie_Entry_List(object):
                     continue
                 else:
                     entry.set_page(page)
-                    entry.set_page_soup(bs4.BeautifulSoup(entry.get_page().text, 'html.parser'))
+                    entry.set_page_soup(bs4.BeautifulSoup(
+                        entry.get_page().text, 'html.parser'
+                    ))
 
             # check the necessity of extracting title from entry page
             if (len(entry._title_list) == 2):
                 original_title_info = (
                     entry
-                        .get_page_soup()
-                        .find('span', property = 'v:itemreviewed')
+                    .get_page_soup()
+                    .find('span', property='v:itemreviewed')
                 )
                 original_title = (
-                    original_title_info.string.strip()[len(entry._title_list[1]) + 1:]
+                    original_title_info
+                    .string
+                    .strip()[len(entry._title_list[1]) + 1:]
                 )
                 entry._title_list[0] = original_title
 
             # extract entry info from entry page
-            entry_info = entry.get_page_soup().find('div', id = 'info')
+            entry_info = entry.get_page_soup().find('div', id='info')
             try:
-                date_info_list = entry_info.find_all('span', property = 'v:initialReleaseDate')
+                date_info_list = entry_info.find_all(
+                    'span', property='v:initialReleaseDate'
+                )
             except AttributeError as e:
                 print(''.join([
-                    '\n##_{:_>{}}##'.format(progress_counter, len(str(len(self)))),
+                    '\n##_{:_>{}}##'.format(
+                        progress_counter, len(str(len(self)))
+                    ),
                     'PARSE ENTRY INFO FAILED: \'{}\''.format(e),
                     str(entry),
                     '########\n',
@@ -118,11 +131,11 @@ class Douban_Movie_Entry_List(object):
                     repr(entry))
                 )
 
-    def sort_list(self, method = 'time', reverse = False) -> None:
+    def sort_list(self, method='time', reverse=False) -> None:
         kwargs = {}
         if (method == 'title'):
             kwargs['key'] = lambda entry: entry._title_list
-        self._entry_list.sort(**kwargs, reverse = reverse)
+        self._entry_list.sort(**kwargs, reverse=reverse)
 
     def __iter__(self) -> Iterator[dme.Douban_Movie_Entry]:
         return self._entry_list.__iter__()
@@ -140,14 +153,14 @@ class Douban_Movie_Entry_List(object):
                 fetched_pages += 1
 
         return ''.join([
-            '<{class_}; '.format(class_ = self.__class__.__name__),
+            '<{class_}; '.format(class_=self.__class__.__name__),
             'contains {entry_count} entr{plural}, '.format(
-                entry_count = len(self),
-                plural = 'ies' if (1 < len(self)) else 'y',
+                entry_count=len(self),
+                plural='ies' if (1 < len(self)) else 'y',
             ),
             'fetched {fetched_pages} page{plural}>'.format(
-                fetched_pages = fetched_pages,
-                plural = 's' if (1 < fetched_pages) else '',
+                fetched_pages=fetched_pages,
+                plural='s' if (1 < fetched_pages) else '',
             ),
         ])
 

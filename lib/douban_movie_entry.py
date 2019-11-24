@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# guess i will just delete this line after python 4.0 ;)
+from __future__ import annotations
 from typing import List, Tuple
 import bs4
 import requests.models as r_models
+
 
 class Douban_Movie_Entry(object):
     def __init__(
@@ -11,15 +14,15 @@ class Douban_Movie_Entry(object):
         title_list: List[str] = [],
         link: str = None, imdb_link: str = None,
         release_date_list: List[Douban_Movie_Entry.Release_Date] = [],
-        page: r_models.Response = None,
-        page_soup: bs4.BeautifulSoup = None,
+        douban_page: r_models.Response = None,
+        douban_page_soup: bs4.BeautifulSoup = None,
     ):
         self._title_list = title_list
         self.link = link
         self.imdb_link = imdb_link
         self._release_date_list = release_date_list
-        self.__page = page
-        self.__page_soup = page_soup
+        self.__douban_page = douban_page
+        self.__douban_page_soup = douban_page_soup
 
     def get_title(self) -> str:
         return ' / '.join(self._title_list)
@@ -27,15 +30,17 @@ class Douban_Movie_Entry(object):
     def get_release_date(self) -> str:
         return ' / '.join([str(e) for e in self._release_date_list])
 
-    def set_page(self, page: r_models.Response) -> None:
-        self.__page = page
-    def get_page(self) -> r_models.Response:
-        return self.__page
+    def set_page(self, douban_page: r_models.Response) -> None:
+        self.__douban_page = douban_page
 
-    def set_page_soup(self, page_soup: bs4.BeautifulSoup) -> None:
-        self.__page_soup = page_soup
+    def get_page(self) -> r_models.Response:
+        return self.__douban_page
+
+    def set_page_soup(self, douban_page_soup: bs4.BeautifulSoup) -> None:
+        self.__douban_page_soup = douban_page_soup
+
     def get_page_soup(self) -> bs4.BeautifulSoup:
-        return self.__page_soup
+        return self.__douban_page_soup
 
     def __lt__(self, other: Douban_Movie_Entry) -> bool:
         if (len(self._release_date_list) != 0):
@@ -62,15 +67,18 @@ class Douban_Movie_Entry(object):
         else:
             release_date = 'EMPTY'
 
-        return '<{class_}; title: {title}, release_date: {release_date}>'.format(
-            class_ = self.__class__.__name__,
-            title = title, release_date = release_date,
-        )
+        return ''.join([
+            '<{class_}; '.format(class_=self.__class__.__name__),
+            'title: {title}, '.format(title=title),
+            'release_date: {release_date}>'.format(release_date=release_date),
+        ])
 
     def __str__(self) -> str:
         link = '\'{}\''.format(self.link) if (self.link != '') else 'EMPTY'
-        imdb_link = '\'{}\''.format(self.imdb_link) if (self.imdb_link != '') else 'EMPTY'
-        page_status_code = self.__page.status_code if (self.__page is not None) else 'PAGE NOT FETCHED'
+        imdb_link = '\'{}\''.format(self.imdb_link) if (
+            self.imdb_link != '') else 'EMPTY'
+        page_status_code = self.__douban_page.status_code if (
+            self.__douban_page is not None) else 'PAGE NOT FETCHED'
         return ''.join([
             '\n<{}>\n'.format(repr(self)),
             '-<Douban Link: {}>\n'.format(link),
@@ -82,7 +90,7 @@ class Douban_Movie_Entry(object):
         def __init__(self, date: str, territory: str = None):
             self.date = date
             self.territory = territory
-        
+
         def __repr__(self) -> str:
             return '<rd(\'{}\', \'{}\')>'.format(self.date, self.territory)
 
@@ -100,8 +108,9 @@ class Douban_Movie_Entry(object):
         #
         # comparison rule (ascending):
         # compare numerical value form y to m to d, **greater is at back**.
-        # if one of the two is missing some part and the rest has same value, like
-        # `1111-22-33` and `1111-22`, **the one with missing parts is at back**.
+        # if one of the two is missing some part and the rest has same value,
+        # like `1111-22-33` and `1111-22`, **the one with missing parts is at
+        # back**.
         def __lt__(self, other: Douban_Movie_Entry.Release_Date) -> bool:
             ss, os = self._split_date(), other._split_date()
             less_than_by_length = True

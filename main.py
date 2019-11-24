@@ -15,27 +15,30 @@ import sensitive_info
 
 list_wish = None
 
+
 def print_list(list_: dmel.Douban_Movie_Entry_List) -> None:
     for e in list_:
         print('{}{}'.format(
-            mua.mixed_unicode_align('.', '<', 80,
-            e.get_title(), resolve_as_wide = ['\u2026']
-        ),
+            mua.mixed_unicode_align(
+                '.', '<', 80,
+                e.get_title(), resolve_as_wide=['\u2026']
+            ),
             e.get_release_date()
         ))
+
 
 def main():
     global list_wish
 
     list_wish = dmel.Douban_Movie_Entry_List(
-        start_url = START_URL.format(
-            people_id = sensitive_info.people_id,
-            list_type = LIST_TYPE_WISH
+        start_url=START_URL.format(
+            people_id=sensitive_info.people_id,
+            list_type=LIST_TYPE_WISH
         ),
-        requester = cr.Crawler_Requests(
-            proxy_list = sensitive_info.proxy_list,
-            allow_request_without_proxy = True,
-            sleep_time_range = (1, 2),
+        requester=cr.Crawler_Requests(
+            proxy_list=sensitive_info.proxy_list,
+            allow_request_without_proxy=True,
+            sleep_time_range=(1, 2),
         ),
     )
 
@@ -43,6 +46,7 @@ def main():
     list_wish.inspect_list()
 
     print_list(list_wish)
+
 
 if (__name__ == '__main__'):
     main()
