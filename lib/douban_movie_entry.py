@@ -143,7 +143,11 @@ class Douban_Movie_Entry(object):
                     .Territory(territory)
                 )
             else:
-                self.territory = ''
+                self.territory = (
+                    Douban_Movie_Entry
+                    .Release_Date
+                    .Territory('')
+                )
 
         def __repr__(self) -> str:
             return '<rd(\'{}\', \'{}\')>'.format(self.date, self.territory)
