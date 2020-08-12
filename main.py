@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from lib import crawler_requests as cr
 from lib import douban_movie_entry_list as dmel
 from lib import mixed_unicode_align as mua
+from tty7tyil_python import crawler_requests_session as crs
 
 LIST_TYPE_COLLECT = 'collect'
 LIST_TYPE_WISH = 'wish'
@@ -35,11 +35,7 @@ def main():
             people_id=sensitive_info.people_id,
             list_type=LIST_TYPE_WISH
         ),
-        requester=cr.Crawler_Requests(
-            proxy_list=sensitive_info.proxy_list,
-            allow_request_without_proxy=True,
-            sleep_time_range=(1, 2),
-        ),
+        requester=crs.Crawler_Requests_Session(),
     )
 
     list_wish.fill_list()

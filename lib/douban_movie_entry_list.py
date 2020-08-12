@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from lib import crawler_requests as cr
 from lib import douban_movie_entry as dme
+from tty7tyil_python import crawler_requests_session as crs
 from typing import Iterator, List
 from urllib import parse
 import bs4
@@ -10,10 +10,10 @@ import requests.exceptions as r_exceptions
 
 
 class Douban_Movie_Entry_List(object):
-    def __init__(self, start_url: str, requester: cr.Crawler_Requests = None):
+    def __init__(self, start_url: str, requester: crs.Crawler_Requests_Session = None):
         self.start_url = start_url
         self.requester = requester if (
-            requester is not None) else cr.Crawler_Requests()
+            requester is not None) else crs.Crawler_Requests_Session()
         self._entry_list: List[dme.Douban_Movie_Entry] = []
 
     def fill_list(self) -> None:
